@@ -10,6 +10,7 @@ class UserSignupRequest(BaseModel):
     age: int = Field(..., example=20)
     phone_number: str = Field(..., example="070-0123-4567")
     address: str = Field(..., example="〒123-4567 東京都港区浜松町1-2-3 サクラビル205号室")
+    is_admin: str = Field(..., example=True)
     introduction: str | None = Field(
         example="グルメフェア株式会社は、美味しさと幸せを提供することに情熱を傾ける食品会社です。")
     sns_url: HttpUrl | None = Field(example="https://x.com/Elonmusk")

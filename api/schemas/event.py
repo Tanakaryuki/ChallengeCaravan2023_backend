@@ -30,6 +30,11 @@ class EventRegistrationRequest(BaseModel):
     participant_id: str = Field(..., example="admin", description="User.id")
 
 
+class EventReceiptRequest(BaseModel):
+    id: str = Field(..., example="oishi_o_123", description="Event.id")
+    participant_id: str = Field(..., example="admin", description="User.id")
+
+
 class EventListItem(BaseModel):
     id: str
     title: str
@@ -54,7 +59,8 @@ class EventItem(EventListItem):
 
 
 class AdministratorItem(BaseModel):
-    detail: str
+    administrator_display_name: str
+    introduction: str
     sns_url: str
     homepage_url: str
 
@@ -84,6 +90,12 @@ class EventReceiptItem(BaseModel):
 class EventReceiptListResponse(BaseModel):
     user: UserNavigateResponse
     receipts: list[EventReceiptItem]
+
+
+class EventReceiptResponse(BaseModel):
+    user: UserNavigateResponse
+    title: str
+    address: str
 
 
 class AdministratorEventListResponse(BaseModel):
