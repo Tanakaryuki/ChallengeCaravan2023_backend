@@ -59,6 +59,7 @@ class Participant(Base):
         "Users.id"), nullable=False, index=True)
     txid = Column(String(48), nullable=False)
     is_winner = Column(Boolean, nullable=True)
+    is_received = Column(Boolean, nullable=False, default=False, index=True)
 
     event = relationship("Event", back_populates="participants")
     user = relationship("User", back_populates="participant", uselist=False)
