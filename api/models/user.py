@@ -1,4 +1,4 @@
-from sqlalchemy import func, Column, Integer, String, ForeignKey, DateTime, Unicode
+from sqlalchemy import func, Column, Integer, String, Boolean, DateTime, Unicode
 from sqlalchemy.orm import relationship
 import uuid
 from api.db import Base
@@ -16,6 +16,7 @@ class User(Base):
     age = Column(Integer, nullable=False)
     phone_number = Column(String(48), nullable=False)
     address = Column(Unicode(96), nullable=False)
+    is_admin = Column(Boolean, nullable=False)
     introduction = Column(Unicode(96), nullable=True)
     sns_url = Column(String(48), nullable=True)
     homapage_url = Column(String(48), nullable=True)
