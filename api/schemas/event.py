@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, HttpUrl
 from datetime import datetime
-from user import UserNavigateResponse
+from api.schemas.user import UserNavigateResponse
 
 
 class EventDraftRequest(BaseModel):
@@ -19,6 +19,15 @@ class EventDraftRequest(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class EventTagItem(BaseModel):
+    uuid: str
+    name: str
+
+
+class EventTagResponse(BaseModel):
+    tags: list[EventTagItem]
 
 
 class EventPublicationRequest(BaseModel):
