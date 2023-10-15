@@ -28,3 +28,7 @@ class UserSigninRequest(BaseModel):
 class UserNavigateResponse(BaseModel):
     id: str
     display_name: str
+
+
+class UserTokenResponse(BaseModel):
+    access_token: str
