@@ -8,7 +8,7 @@ class EventDraftRequest(BaseModel):
     title: str | None = Field(None, example="抽選で10名様に美食ツアーをプレゼント")
     image_url: HttpUrl = Field(...,
                                example="https://storage.googleapis.com/...")
-    tags: list[str] | None = Field(None, example=["ツアー", "グルメ体験"])
+    tags: list[str] | None = Field(None, example=["tag_uuid", "tag_uuid"])
     winning_number: int = Field(..., example=10)
     start_time: datetime = Field(..., example=1701442800,
                                  description="UNIXTIME")
@@ -56,7 +56,7 @@ class EventListItem(BaseModel):
 class ParticipantEventListResponse(BaseModel):
     user: UserNavigateResponse
     events: list[EventListItem]
-    tags: list[str]
+    tags: list[EventTagItem]
 
 
 class EventItem(EventListItem):
