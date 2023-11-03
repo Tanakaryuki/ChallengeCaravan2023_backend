@@ -11,7 +11,6 @@ router = APIRouter()
 @router.post("/signup", description="新しいアカウントを作成するために使用されます。", tags=["users"])
 async def singup(request: user_schema.UserSignupRequest, db: AsyncSession = Depends(get_db)):
     user = await user_crud.creatr_user(db, request)
-    print(user)
     if not user:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
