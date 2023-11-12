@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
@@ -13,6 +13,21 @@ from api.db import get_db
 
 load_dotenv()
 router = APIRouter()
+
+
+async def _get_current_user(access_token: str = Depends(OAuth2PasswordBearer("/api/signin")), db: AsyncSession = Depends(get_db)):
+    try:
+        data = jwt.decode(access_token, os.environ["SECRET_KEY"], "HS256")
+        username = data.get("sub")
+        if not username:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    except JWTError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    user = await user_crud.read_user_by_id(db, id=username)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
+    return user
 
 
 @router.post("/signup", description="新しいアカウントを作成するために使用されます。", tags=["users"])
@@ -37,3 +52,10 @@ async def signin(request: OAuth2PasswordRequestForm = Depends(), db: AsyncSessio
     )
 
     return token
+
+
+@router.post("/me", description="既存ユーザがアカウントにサインインするために使用されます。", tags=["users"], response_model=user_schema.UserNavigateResponse)
+async def signin(current_user: user_model.User = Depends(_get_current_user), db: AsyncSession = Depends(get_db)) -> user_schema.UserNavigateResponse:
+    user = await user_crud.read_user_by_id(db, id=current_user.id)
+
+    return user

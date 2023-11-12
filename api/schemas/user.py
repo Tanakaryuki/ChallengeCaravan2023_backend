@@ -29,6 +29,9 @@ class UserNavigateResponse(BaseModel):
     id: str
     display_name: str
 
+    class Config:
+        from_attributes = True
+
 
 class UserTokenResponse(BaseModel):
     access_token: str
