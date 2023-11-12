@@ -61,6 +61,7 @@ class ParticipantEventListResponse(BaseModel):
 
 class EventItem(EventListItem):
     detail: str
+    tags: list[EventTagItem]
     is_active: bool
     is_winner: bool | None
     has_applied: bool
