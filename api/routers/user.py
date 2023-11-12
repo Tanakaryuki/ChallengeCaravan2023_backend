@@ -54,8 +54,8 @@ async def signin(request: OAuth2PasswordRequestForm = Depends(), db: AsyncSessio
     return token
 
 
-@router.post("/me", description="既存ユーザがアカウントにサインインするために使用されます。", tags=["users"], response_model=user_schema.UserNavigateResponse)
-async def signin(current_user: user_model.User = Depends(_get_current_user), db: AsyncSession = Depends(get_db)) -> user_schema.UserNavigateResponse:
+@router.post("/me", description="ログインしているユーザの情報を取得するために使用されます", tags=["users"], response_model=user_schema.UserInformationResponse)
+async def signin(current_user: user_model.User = Depends(_get_current_user), db: AsyncSession = Depends(get_db)) -> user_schema.UserInformationResponse:
     user = await user_crud.read_user_by_id(db, id=current_user.id)
 
     return user

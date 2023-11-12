@@ -20,14 +20,28 @@ class UserSignupRequest(BaseModel):
         from_attributes = True
 
 
-class UserSigninRequest(BaseModel):
-    id: str = Field(..., example="admin")
-    password: str = Field(..., example="password")
-
-
 class UserNavigateResponse(BaseModel):
     id: str
     display_name: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserInformationResponse(BaseModel):
+    uuid: str
+    email: EmailStr
+    id: str
+    display_name: str
+    age: int
+    phone_number: str
+    address: str
+    is_admin: bool
+    introduction: str | None
+    sns_url: HttpUrl | None
+    homepage_url: str | None
+    created_at: datetime
+    updated_at: datetime | None
 
     class Config:
         from_attributes = True
