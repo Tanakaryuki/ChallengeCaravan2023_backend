@@ -10,10 +10,8 @@ class EventDraftRequest(BaseModel):
                                example="https://storage.googleapis.com/...")
     tags: list[str] | None = Field(None, example=["tag_uuid", "tag_uuid"])
     winning_number: int = Field(..., example=10)
-    start_time: datetime = Field(..., example=1701442800,
-                                 description="UNIXTIME")
-    end_time: datetime = Field(..., example=1701486000,
-                               description="UNIXTIME")
+    start_time: datetime = Field(...)
+    end_time: datetime = Field(...)
     detail: str = Field(..., example="抽選で10名の幸運な参加者に、豪華な美食ツアーをプレゼントします!!")
     id: str = Field(..., example="oishi_o_123", description="Event.id")
 
