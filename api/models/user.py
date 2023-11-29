@@ -1,14 +1,13 @@
 from sqlalchemy import func, Column, Integer, String, Boolean, DateTime, Unicode
 from sqlalchemy.orm import relationship
-import uuid
-from api.db import Base
+from api.db import Base, generate_uuid
 
 
 class User(Base):
     __tablename__ = "Users"
 
-    uuid = Column(String(48), primary_key=True,
-                  default=str(uuid.uuid4()), index=True)
+    uuid = Column(String(48), default=generate_uuid,
+                  primary_key=True, index=True)
     id = Column(String(48), unique=True, nullable=False, index=True)
     email = Column(String(48), unique=True, nullable=False)
     hashed_password = Column(String(96), nullable=False)
@@ -22,3 +21,7 @@ class User(Base):
     homepage_url = Column(String(48), nullable=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+
+    events_administered = relationship("Event", back_populates="administrator")
+    events_participated = relationship(
+        "Participant", back_populates="participant")

@@ -1,14 +1,13 @@
 from sqlalchemy import func, Column, Integer, String, ForeignKey, DateTime, Unicode, Boolean
 from sqlalchemy.orm import relationship
-import uuid
-from api.db import Base
+from api.db import Base, generate_uuid
 
 
 class Event(Base):
     __tablename__ = "Events"
 
     uuid = Column(String(48), primary_key=True,
-                  default=str(uuid.uuid4()), index=True)
+                  default=generate_uuid, index=True)
     id = Column(String(48), unique=True, nullable=False, index=True)
     administrator_id = Column(String(48), ForeignKey(
         "Users.id"), nullable=False, index=True)
@@ -23,27 +22,28 @@ class Event(Base):
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    user = relationship(
-        "User", back_populates="administrator", uselist=False)
+    administrator = relationship("User", back_populates="events_administered")
     participants = relationship("Participant", back_populates="event")
-    tags = relationship("Tag", secondary="EventTag", back_populates="events")
+    tags = relationship("Tag", secondary="EventTag",
+                        back_populates="event_tags")
 
 
 class Tag(Base):
     __tablename__ = "Tags"
 
-    uuid = Column(String(48), primary_key=True, default=str(uuid.uuid4()))
+    uuid = Column(String(48), primary_key=True, default=generate_uuid)
     name = Column(Unicode(96), nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
 
-    events = relationship("Event", secondary="EventTag", back_populates="tags")
+    event_tags = relationship(
+        "Event", secondary="EventTag", back_populates="tags")
 
 
 class EventTag(Base):
     __tablename__ = "EventTag"
 
     uuid = Column(String(48), primary_key=True,
-                  default=str(uuid.uuid4()), index=True)
+                  default=generate_uuid, index=True)
     event_uuid = Column(String(48), ForeignKey("Events.uuid"))
     tag_uuid = Column(String(48), ForeignKey("Tags.uuid"))
 
@@ -52,9 +52,9 @@ class Participant(Base):
     __tablename__ = "Participants"
 
     uuid = Column(String(48), primary_key=True,
-                  default=str(uuid.uuid4()), index=True)
-    event_id = Column(String(48), ForeignKey("Events.id"),
-                      nullable=False, index=True)
+                  default=generate_uuid, index=True)
+    event_id = Column(String(48), ForeignKey(
+        "Events.id"), nullable=False, index=True)
     participant_id = Column(String(48), ForeignKey(
         "Users.id"), nullable=False, index=True)
     txid = Column(String(48), nullable=False)
@@ -62,4 +62,4 @@ class Participant(Base):
     is_received = Column(Boolean, nullable=False, default=False, index=True)
 
     event = relationship("Event", back_populates="participants")
-    user = relationship("User", back_populates="participant", uselist=False)
+    participant = relationship("User", back_populates="events_participated")
