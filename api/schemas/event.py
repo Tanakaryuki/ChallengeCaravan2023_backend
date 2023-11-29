@@ -24,6 +24,10 @@ class EventTagItem(BaseModel):
     name: str
 
 
+class EventTagRequest(BaseModel):
+    name: str
+
+
 class EventTagResponse(BaseModel):
     tags: list[EventTagItem]
 

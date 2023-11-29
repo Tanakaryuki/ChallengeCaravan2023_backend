@@ -59,6 +59,15 @@ def get_tags(db: Session = Depends(get_db)) -> event_schema.EventTagResponse:
     pass
 
 
+@router.post("/event/tag", description="新しいタグを作成するために使用されます。", tags=["events"])
+def post_tag(request: event_schema.EventTagRequest, db: Session = Depends(get_db)):
+    tag = event_crud.creatr_tag(db, request)
+    if not tag:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+
+    return status.HTTP_201_CREATED
+
+
 @router.get("/events/administrator", response_model=event_schema.AdministratorEventListResponse, description="主催者向けに利用可能な全てのイベント一覧を取得するために使用されます。", tags=["events"])
 def get_events_administrator(db: Session = Depends(get_db)) -> event_schema.AdministratorEventListResponse:
     pass
