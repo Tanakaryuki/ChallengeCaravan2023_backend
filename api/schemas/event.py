@@ -62,6 +62,7 @@ class ParticipantEventListResponse(BaseModel):
 class EventItem(EventListItem):
     detail: str
     tags: list[EventTagItem]
+    winning_number: int
     is_active: bool
     is_winner: bool | None
     has_applied: bool
