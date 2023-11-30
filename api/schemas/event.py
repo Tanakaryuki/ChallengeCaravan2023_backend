@@ -68,6 +68,7 @@ class EventItem(EventListItem):
     is_active: bool
     is_winner: bool | None
     has_applied: bool
+    is_received: bool
     is_published: bool
 
 
