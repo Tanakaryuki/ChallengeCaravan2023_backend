@@ -1,6 +1,7 @@
-from sqlalchemy import func, Column, Integer, String, ForeignKey, DateTime, Unicode, Boolean
+from sqlalchemy import func, Column, Integer, String, ForeignKey, DateTime, String, Boolean
 from sqlalchemy.orm import relationship
 from api.db import Base, generate_uuid
+from typing import List
 
 
 class Event(Base):
@@ -16,7 +17,7 @@ class Event(Base):
     winning_number = Column(Integer, nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
-    detail = Column(Unicode(96), nullable=False)
+    detail = Column(String(96), nullable=False)
     is_active = Column(Boolean, nullable=False, default=False, index=True)
     is_published = Column(Boolean, nullable=False, default=False, index=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
@@ -32,7 +33,7 @@ class Tag(Base):
     __tablename__ = "Tags"
 
     uuid = Column(String(48), primary_key=True, default=generate_uuid)
-    name = Column(Unicode(96), nullable=False)
+    name = Column(String(96), nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
 
     event_tags = relationship(
