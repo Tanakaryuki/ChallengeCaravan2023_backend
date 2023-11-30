@@ -47,8 +47,45 @@ def search_events(
 
 
 @router.get("/event/{id}", response_model=event_schema.EventDetailResponse, description="指定されたイベントの詳細情報を取得するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
-def get_event(id: str, db: Session = Depends(get_db)) -> event_schema.EventDetailResponse:
-    pass
+def get_event(id: str, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.EventDetailResponse:
+    user = user_crud.read_user_by_id(db, id=current_user.id)
+    event = event_crud.read_event_by_id(db, id=id)
+
+    if (event is None):
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    administrator = user_crud.read_user_by_id(db, id=event.administrator_id)
+    event_participant = event_crud.read_participant_by_event_id_and_participant_id(
+        db, event_id=id, participant_id=current_user.id)
+
+    common_properties: dict = {
+        'id': event.id,
+        'title': event.title,
+        'image_url': event.image_url,
+        'administrator_id': event.administrator_id,
+        'start_time': event.start_time,
+        'end_time': event.end_time,
+        'detail': event.detail,
+        'winning_number': event.winning_number,
+        'is_active': event.is_active,
+        'tags': event.tags,
+        'is_published': event.is_published
+    }
+
+    if event_participant is None:
+        common_properties.update(
+            {'is_winner': None, 'has_applied': False, 'is_received': False})
+    else:
+        common_properties.update({
+            'is_winner': event_participant.is_winner,
+            'has_applied': True,
+            'is_received': event_participant.is_received
+        })
+
+    # EventItemオブジェクトの作成
+    event = event_schema.EventItem(**common_properties)
+
+    return event_schema.EventDetailResponse(user=user, event=event, administrator=administrator)
 
 
 @router.post("/event", description="イベントに参加するために利用されます。", tags=["events"])
@@ -96,8 +133,12 @@ def get_events_administrator(db: Session = Depends(get_db)) -> event_schema.Admi
 
 
 @router.post("/event/draft", description="新しいイベントの下書きを作成するために使用されます。", tags=["events"])
-def draft_event(request: event_schema.EventDraftRequest, db: Session = Depends(get_db)):
-    pass
+def draft_event(request: event_schema.EventDraftRequest, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)):
+    event = event_crud.draft_event(db, current_user.id, request)
+    if not event:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+
+    return status.HTTP_201_CREATED
 
 
 @router.post("/event/publish", description="下書き状態にあるイベントを公開するために使用されます。", tags=["events"])

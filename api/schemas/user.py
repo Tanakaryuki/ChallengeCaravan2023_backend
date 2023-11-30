@@ -28,6 +28,16 @@ class UserNavigateResponse(BaseModel):
         from_attributes = True
 
 
+class UserAdministratorResponse(BaseModel):
+    display_name: str
+    introduction: str
+    sns_url: str
+    homepage_url: str
+
+    class Config:
+        from_attributes = True
+
+
 class UserInformationResponse(BaseModel):
     uuid: str
     email: EmailStr

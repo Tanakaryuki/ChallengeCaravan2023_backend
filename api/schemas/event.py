@@ -1,10 +1,9 @@
 from pydantic import BaseModel, Field, HttpUrl
 from datetime import datetime
-from api.schemas.user import UserNavigateResponse
+from api.schemas.user import UserNavigateResponse, UserAdministratorResponse
 
 
 class EventDraftRequest(BaseModel):
-    administrator_id: str = Field(..., example="admin", description="User.id")
     title: str | None = Field(None, example="抽選で10名様に美食ツアーをプレゼント")
     image_url: HttpUrl = Field(...,
                                example="https://storage.googleapis.com/...")
@@ -22,6 +21,9 @@ class EventDraftRequest(BaseModel):
 class EventTagItem(BaseModel):
     uuid: str
     name: str
+
+    class Config:
+        from_attributes = True
 
 
 class EventTagRequest(BaseModel):
@@ -72,17 +74,13 @@ class EventItem(EventListItem):
     is_published: bool
 
 
-class AdministratorItem(BaseModel):
-    administrator_display_name: str
-    introduction: str
-    sns_url: str
-    homepage_url: str
-
-
 class EventDetailResponse(BaseModel):
     user: UserNavigateResponse
     event: EventItem
-    administrator: AdministratorItem
+    administrator: UserAdministratorResponse
+
+    class Config:
+        from_attributes = True
 
 
 class EventResultItem(BaseModel):
