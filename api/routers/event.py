@@ -4,10 +4,32 @@ from sqlalchemy.orm import Session
 import api.schemas.event as event_schema
 import api.cruds.event as event_crud
 import api.models.event as event_model
+import api.cruds.user as user_crud
+import api.models.user as user_model
 from api.db import get_db
+
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+import os
+from dotenv import load_dotenv
 
 
 router = APIRouter()
+
+
+def _get_current_user(access_token: str = Depends(OAuth2PasswordBearer("/api/signin")), db: Session = Depends(get_db)):
+    try:
+        data = jwt.decode(access_token, os.environ["SECRET_KEY"], "HS256")
+        username = data.get("sub")
+        if not username:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    except JWTError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    user = user_crud.read_user_by_id(db, id=username)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
+    return user
 
 
 @router.get("/events/participant", response_model=event_schema.ParticipantEventListResponse, description="参加者向けに利用可能な全てのイベント一覧を取得するために使用されます。", tags=["events"])
@@ -60,7 +82,7 @@ def get_tags(db: Session = Depends(get_db)) -> event_schema.EventTagResponse:
 
 
 @router.post("/event/tag", description="新しいタグを作成するために使用されます。", tags=["events"])
-def post_tag(request: event_schema.EventTagRequest, db: Session = Depends(get_db)):
+def post_tag(request: event_schema.EventTagRequest, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)):
     tag = event_crud.creatr_tag(db, request)
     if not tag:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
