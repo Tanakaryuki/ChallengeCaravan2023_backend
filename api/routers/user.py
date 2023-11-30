@@ -54,7 +54,7 @@ def signin(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
     return token
 
 
-@router.post("/me", description="ログインしているユーザの情報を取得するために使用されます", tags=["users"], response_model=user_schema.UserInformationResponse)
+@router.get("/me", description="ログインしているユーザの情報を取得するために使用されます", tags=["users"], response_model=user_schema.UserInformationResponse)
 def signin(current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> user_schema.UserInformationResponse:
     user = user_crud.read_user_by_id(db, id=current_user.id)
 
