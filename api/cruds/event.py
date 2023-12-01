@@ -165,3 +165,7 @@ def update_is_active(db: Session, id: str, is_active: bool) -> event_model.Event
     db.commit()
     db.refresh(event)
     return event
+
+
+def read_is_winner_participants_by_event_id(db: Session, event_id: str) -> event_model.Participant | None:
+    return db.query(event_model.Participant).filter(and_(event_model.Participant.event_id == event_id, event_model.Participant.is_winner == True)).all()

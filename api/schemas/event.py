@@ -97,7 +97,10 @@ class EventResultListResponse(BaseModel):
 
 class EventReceiptItem(BaseModel):
     participant_id: str
-    txid: str
+    received_txid: str | None
+
+    class Config:
+        from_attributes = True
 
 
 class EventReceiptListResponse(BaseModel):

@@ -211,8 +211,12 @@ def post_receipt(request: event_schema.EventReceiptRequest, current_user: user_m
 
 
 @router.get("/event/{id}/receipts", response_model=event_schema.EventReceiptListResponse, description="指定されたイベントの受領一覧を取得するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
-def get_receipt(id: str, db: Session = Depends(get_db)) -> event_schema.EventReceiptListResponse:
-    pass
+def get_receipt(id: str, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.EventReceiptListResponse:
+    user = user_crud.read_user_by_id(db, id=current_user.id)
+    receipts = event_crud.read_is_winner_participants_by_event_id(
+        db, event_id=id)
+
+    return event_schema.EventReceiptListResponse(user=user, receipts=receipts)
 
 
 @router.get("/event/tags", response_model=event_schema.EventTagResponse, description="利用可能なタグ一覧を取得するために使用されます。", tags=["events"])
