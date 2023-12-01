@@ -138,8 +138,17 @@ def get_receipt(id: str, db: Session = Depends(get_db)) -> event_schema.EventRec
 
 
 @router.post("/event/{id}/receipt", description="指定されたイベントの参加者が景品を受け取ったことを確認するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
-def post_receipt(request: event_schema.EventReceiptRequest, db: Session = Depends(get_db)):
-    pass
+def post_receipt(request: event_schema.EventReceiptRequest, current_user: user_model.User = Depends(_get_current_user),  db: Session = Depends(get_db)):
+    event = event_crud.read_event_by_id(db, request.event_id)
+    participant = event_crud.read_participant_by_event_id_and_participant_id(
+        db, request.event_id, current_user.id)
+    if not event or not participant:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    event = event_crud.receipt_event(db, request.event_id, current_user.id)
+    if not event:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    return status.HTTP_200_OK
 
 
 @router.get("/event/{id}/receipts", response_model=event_schema.EventReceiptListResponse, description="指定されたイベントの受領一覧を取得するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])

@@ -43,8 +43,7 @@ class EventRegistrationRequest(BaseModel):
 
 
 class EventReceiptRequest(BaseModel):
-    id: str = Field(..., example="oishi_o_123", description="Event.id")
-    participant_id: str = Field(..., example="admin", description="User.id")
+    event_id: str = Field(..., example="oishi_o_123", description="Event.id")
 
 
 class EventListItem(BaseModel):

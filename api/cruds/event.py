@@ -115,3 +115,13 @@ def publish_event(db: Session, id: str) -> event_model.Event | None:
     db.commit()
     db.refresh(event)
     return event
+
+
+def receipt_event(db: Session, event_id: str, participant_id: str) -> event_model.Participant | None:
+    participant = read_participant_by_event_id_and_participant_id(
+        db, event_id, participant_id)
+    participant.is_received = True
+    db.add(participant)
+    db.commit()
+    db.refresh(participant)
+    return participant
