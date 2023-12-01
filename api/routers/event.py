@@ -15,16 +15,24 @@ from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.jobstores.base import JobLookupError
+from apscheduler.triggers.date import DateTrigger
+from datetime import datetime, timezone
+from pytz import timezone
+import hashlib
+import random
 
 
 router = APIRouter()
 
-trigger = IntervalTrigger(minutes=5)
+txid_trigger = IntervalTrigger(minutes=5)
+
 scheduler = BackgroundScheduler()
 scheduler.start()
 
+jst = timezone('Asia/Tokyo')
 
-def job_wrapper(id: int, db: Session = Depends(get_db)):
+
+def _change_txid(id: int, db: Session = Depends(get_db)):
     result = event_crud.show_timestamp(id)
 
     try:
@@ -33,6 +41,29 @@ def job_wrapper(id: int, db: Session = Depends(get_db)):
             scheduler.remove_job(str(id))
     except JobLookupError:
         pass
+
+
+def _start_event(event_id: str, db: Session = Depends(get_db)):
+    event_crud.update_is_active(db, event_id, True)
+
+
+def _select_winner(event_id: str, db: Session = Depends(get_db)):
+    event = event_crud.update_is_active(db, event_id, False)
+    participants = event_crud.read_participants_by_event_id(db, event_id)
+    winners = _lottery_draw(event_id, participants, event.winning_number)
+    for participant in participants:
+        if participant in winners:
+            event_crud.update_is_winner(
+                db, event_id, participant.participant_id, True)
+        else:
+            event_crud.update_is_winner(
+                db, event_id, participant.participant_id, False)
+
+
+def _lottery_draw(event_id: str, participants: list[str], winning_number: int):
+    random.seed(event_id)
+    winner = random.sample(participants, winning_number)
+    return winner
 
 
 def _get_current_user(access_token: str = Depends(OAuth2PasswordBearer("/api/signin")), db: Session = Depends(get_db)):
@@ -121,8 +152,8 @@ def register_events(request: event_schema.EventRegistrationRequest, current_user
     if not participant:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
-    scheduler.add_job(job_wrapper, id=str(participant.id), args=[
-                      participant.id, db], trigger=trigger)
+    scheduler.add_job(_change_txid, id=str(participant.id), args=[
+                      participant.id, db], trigger=txid_trigger)
 
     return status.HTTP_201_CREATED
 
@@ -142,7 +173,7 @@ def post_receipt(request: event_schema.EventReceiptRequest, current_user: user_m
     event = event_crud.read_event_by_id(db, request.event_id)
     participant = event_crud.read_participant_by_event_id_and_participant_id(
         db, request.event_id, current_user.id)
-    if not event or not participant:
+    if not event or not participant or not participant.is_winner:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     event = event_crud.receipt_event(db, request.event_id, current_user.id)
@@ -193,6 +224,14 @@ def publish_event(request: event_schema.EventPublicationRequest, current_user: u
     event = event_crud.publish_event(db, request.id)
     if not event:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    run_date = event.end_time.astimezone(jst)
+    trigger = DateTrigger(run_date=run_date)
+    scheduler.add_job(_select_winner, id=request.id+"_select", args=[
+                      request.id, db], trigger=trigger)
+    run_date = event.start_time.astimezone(jst)
+    trigger = DateTrigger(run_date=run_date)
+    scheduler.add_job(_start_event, id=request.id+"_start", args=[
+                      request.id, db], trigger=trigger)
     return status.HTTP_200_OK
 
 

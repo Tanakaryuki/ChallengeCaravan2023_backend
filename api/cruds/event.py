@@ -125,3 +125,26 @@ def receipt_event(db: Session, event_id: str, participant_id: str) -> event_mode
     db.commit()
     db.refresh(participant)
     return participant
+
+
+def read_participants_by_event_id(db: Session, event_id: str) -> event_model.Participant | None:
+    return db.query(event_model.Participant).filter(event_model.Participant.event_id == event_id).all()
+
+
+def update_is_winner(db: Session, event_id: str, participant_id: str, is_winner: bool) -> event_model.Participant | None:
+    participant = read_participant_by_event_id_and_participant_id(
+        db, event_id, participant_id)
+    participant.is_winner = is_winner
+    db.add(participant)
+    db.commit()
+    db.refresh(participant)
+    return participant
+
+
+def update_is_active(db: Session, id: str, is_active: bool) -> event_model.Event | None:
+    event = read_event_by_id(db, id)
+    event.is_active = is_active
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
