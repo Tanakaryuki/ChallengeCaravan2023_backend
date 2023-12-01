@@ -176,8 +176,15 @@ def draft_event(request: event_schema.EventDraftRequest, current_user: user_mode
 
 
 @router.post("/event/publish", description="下書き状態にあるイベントを公開するために使用されます。", tags=["events"])
-def publish_event(request: event_schema.EventPublicationRequest, db: Session = Depends(get_db)):
-    pass
+def publish_event(request: event_schema.EventPublicationRequest, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)):
+    event = event_crud.read_event_by_id(db, request.id)
+    if not event or event.administrator_id != current_user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    event = event_crud.publish_event(db, request.id)
+    if not event:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    return status.HTTP_200_OK
 
 
 @router.get("/get_jobs", description="スケジューリングされたjobを確認するために使用されます。", tags=["scheduler"])

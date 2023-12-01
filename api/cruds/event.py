@@ -106,3 +106,12 @@ def update_participant_txid(db: Session, id: int, txid: str) -> event_model.Part
     db.commit()
     db.refresh(participant)
     return participant
+
+
+def publish_event(db: Session, id: str) -> event_model.Event | None:
+    event = read_event_by_id(db, id)
+    event.is_published = True
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
