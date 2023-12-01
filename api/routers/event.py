@@ -117,7 +117,7 @@ def get_event(id: str, current_user: user_model.User = Depends(_get_current_user
     user = user_crud.read_user_by_id(db, id=current_user.id)
     event = event_crud.read_event_by_id(db, id=id)
 
-    if (event is None):
+    if event is None or (event.is_published is False and event.administrator_id != current_user.id):
         raise HTTPException(status_code=404, detail="Event not found")
 
     administrator = user_crud.read_user_by_id(db, id=event.administrator_id)
