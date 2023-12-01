@@ -86,7 +86,7 @@ class EventDetailResponse(BaseModel):
 
 class EventResultItem(BaseModel):
     participant_id: str
-    join_txid: str
+    join_txid: str | None
     is_winner: bool
 
     class Config:
