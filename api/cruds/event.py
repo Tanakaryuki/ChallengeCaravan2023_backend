@@ -86,22 +86,33 @@ def read_participant_by_event_id_and_participant_id(db: Session, event_id: str, 
 
 
 def join_event(db: Session, event_id: str, participant_id: str) -> event_model.Participant | None:
-    response = record_timestamp(content=event_id + "_" + participant_id)
+    response = record_timestamp(
+        content=event_id + "_" + participant_id + "_join")
     if response == "ERROR":
         return None
 
     participant = event_model.Participant(
-        event_id=event_id, participant_id=participant_id, id=response["id"])
+        event_id=event_id, participant_id=participant_id, join_id=response["id"])
     db.add(participant)
     db.commit()
     db.refresh(participant)
     return participant
 
 
-def update_participant_txid(db: Session, id: int, txid: str) -> event_model.Participant | None:
+def update_participant_join_txid(db: Session, id: int, txid: str) -> event_model.Participant | None:
     participant = db.query(event_model.Participant).filter(
-        event_model.Participant.id == id).first()
-    participant.txid = txid
+        event_model.Participant.join_id == id).first()
+    participant.join_txid = txid
+    db.add(participant)
+    db.commit()
+    db.refresh(participant)
+    return participant
+
+
+def update_participant_received_txid(db: Session, id: int, txid: str) -> event_model.Participant | None:
+    participant = db.query(event_model.Participant).filter(
+        event_model.Participant.received_id == id).first()
+    participant.received_txid = txid
     db.add(participant)
     db.commit()
     db.refresh(participant)
@@ -118,9 +129,15 @@ def publish_event(db: Session, id: str) -> event_model.Event | None:
 
 
 def receipt_event(db: Session, event_id: str, participant_id: str) -> event_model.Participant | None:
+    response = record_timestamp(
+        content=event_id + "_" + participant_id + "_received")
+    if response == "ERROR":
+        return None
+
     participant = read_participant_by_event_id_and_participant_id(
         db, event_id, participant_id)
     participant.is_received = True
+    participant.received_id = response["id"]
     db.add(participant)
     db.commit()
     db.refresh(participant)

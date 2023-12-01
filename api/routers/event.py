@@ -24,7 +24,7 @@ import random
 
 router = APIRouter()
 
-txid_trigger = IntervalTrigger(minutes=5)
+txid_trigger = IntervalTrigger(minutes=2)
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -32,13 +32,26 @@ scheduler.start()
 jst = timezone('Asia/Tokyo')
 
 
-def _change_txid(id: int, db: Session = Depends(get_db)):
+def _change_join_txid(id: int, db: Session = Depends(get_db)):
     result = event_crud.show_timestamp(id)
 
     try:
         if result["txid"]:
-            event_crud.update_participant_txid(db, id=id, txid=result["txid"])
-            scheduler.remove_job(str(id))
+            event_crud.update_participant_join_txid(
+                db, id=id, txid=result["txid"])
+            scheduler.remove_job(str(id)+"_join")
+    except JobLookupError:
+        pass
+
+
+def _change_received_txid(id: int, db: Session = Depends(get_db)):
+    result = event_crud.show_timestamp(id)
+
+    try:
+        if result["txid"]:
+            event_crud.update_participant_received_txid(
+                db, id=id, txid=result["txid"])
+            scheduler.remove_job(str(id)+"_received")
     except JobLookupError:
         pass
 
@@ -152,8 +165,8 @@ def register_events(request: event_schema.EventRegistrationRequest, current_user
     if not participant:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
-    scheduler.add_job(_change_txid, id=str(participant.id), args=[
-                      participant.id, db], trigger=txid_trigger)
+    scheduler.add_job(_change_join_txid, id=str(participant.join_id)+"_join", args=[
+                      participant.join_id, db], trigger=txid_trigger)
 
     return status.HTTP_201_CREATED
 
@@ -179,6 +192,8 @@ def post_receipt(request: event_schema.EventReceiptRequest, current_user: user_m
     event = event_crud.receipt_event(db, request.event_id, current_user.id)
     if not event:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
+    scheduler.add_job(_change_received_txid, id=str(participant.received_id)+"_received", args=[
+                      participant.received_id, db], trigger=txid_trigger)
     return status.HTTP_200_OK
 
 

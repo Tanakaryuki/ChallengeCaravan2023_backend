@@ -58,8 +58,10 @@ class Participant(Base):
         "Events.id"), nullable=False, index=True)
     participant_id = Column(String(48), ForeignKey(
         "Users.id"), nullable=False, index=True)
-    txid = Column(String(96), nullable=True)
-    id = Column(Integer, nullable=False)
+    join_txid = Column(String(96), nullable=True)
+    received_txid = Column(String(96), nullable=True)
+    join_id = Column(Integer, nullable=False)
+    received_id = Column(Integer, nullable=True)
     is_winner = Column(Boolean, nullable=True)
     is_received = Column(Boolean, nullable=False, default=False, index=True)
     created_at = Column(DateTime, nullable=False, default=func.now())
