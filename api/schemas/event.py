@@ -83,8 +83,11 @@ class EventDetailResponse(BaseModel):
 
 class EventResultItem(BaseModel):
     participant_id: str
-    txid: str
+    join_txid: str
     is_winner: bool
+
+    class Config:
+        from_attributes = True
 
 
 class EventResultListResponse(BaseModel):

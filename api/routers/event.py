@@ -172,8 +172,11 @@ def register_events(request: event_schema.EventRegistrationRequest, current_user
 
 
 @router.get("/event/{id}/results", response_model=event_schema.EventResultListResponse, description="指定されたイベントの抽選結果を取得するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
-def get_result(id: str, db: Session = Depends(get_db)) -> event_schema.EventResultListResponse:
-    pass
+def get_result(id: str, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.EventResultListResponse:
+    user = user_crud.read_user_by_id(db, id=current_user.id)
+    results = event_crud.read_participants_by_event_id(db, event_id=id)
+
+    return event_schema.EventResultListResponse(user=user, results=results)
 
 
 @router.get("/event/{id}/receipt", response_model=event_schema.EventReceiptResponse, description="指定されたイベントの参加者が受け取り確認するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
