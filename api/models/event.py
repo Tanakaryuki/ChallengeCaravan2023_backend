@@ -58,9 +58,12 @@ class Participant(Base):
         "Events.id"), nullable=False, index=True)
     participant_id = Column(String(48), ForeignKey(
         "Users.id"), nullable=False, index=True)
-    txid = Column(String(48), nullable=False)
+    txid = Column(String(96), nullable=True)
+    id = Column(Integer, nullable=False)
     is_winner = Column(Boolean, nullable=True)
     is_received = Column(Boolean, nullable=False, default=False, index=True)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     event = relationship("Event", back_populates="participants")
     participant = relationship("User", back_populates="events_participated")
