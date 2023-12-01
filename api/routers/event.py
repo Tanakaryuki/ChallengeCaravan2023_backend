@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 import api.schemas.event as event_schema
@@ -8,13 +9,30 @@ import api.cruds.user as user_crud
 import api.models.user as user_model
 from api.db import get_db
 
-from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 import os
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.jobstores.base import JobLookupError
 
 
 router = APIRouter()
+
+trigger = IntervalTrigger(minutes=5)
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+
+def job_wrapper(id: int, db: Session = Depends(get_db)):
+    result = event_crud.show_timestamp(id)
+
+    try:
+        if result["txid"]:
+            event_crud.update_participant_txid(db, id=id, txid=result["txid"])
+            scheduler.remove_job(str(id))
+    except JobLookupError:
+        pass
 
 
 def _get_current_user(access_token: str = Depends(OAuth2PasswordBearer("/api/signin")), db: Session = Depends(get_db)):
@@ -89,8 +107,24 @@ def get_event(id: str, current_user: user_model.User = Depends(_get_current_user
 
 
 @router.post("/event", description="イベントに参加するために利用されます。", tags=["events"])
-def register_events(request: event_schema.EventRegistrationRequest, db: Session = Depends(get_db)):
-    pass
+def register_events(request: event_schema.EventRegistrationRequest, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)):
+    event = event_crud.read_event_by_id(db, request.event_id)
+    if not event:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    participant = event_crud.read_participant_by_event_id_and_participant_id(
+        db, request.event_id, current_user.id)
+    if participant:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+
+    participant = event_crud.join_event(db, request.event_id, current_user.id)
+    if not participant:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST)
+
+    scheduler.add_job(job_wrapper, id=str(participant.id), args=[
+                      participant.id, db], trigger=trigger)
+
+    return status.HTTP_201_CREATED
 
 
 @router.get("/event/{id}/results", response_model=event_schema.EventResultListResponse, description="指定されたイベントの抽選結果を取得するために使用されます。idパラメータによってイベントIDを指定します。", tags=["events"])
@@ -120,7 +154,7 @@ def get_tags(db: Session = Depends(get_db)) -> event_schema.EventTagResponse:
 
 @router.post("/event/tag", description="新しいタグを作成するために使用されます。", tags=["events"])
 def post_tag(request: event_schema.EventTagRequest, current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)):
-    tag = event_crud.creatr_tag(db, request)
+    tag = event_crud.create_tag(db, request)
     if not tag:
         raise HTTPException(status.HTTP_400_BAD_REQUEST)
 
@@ -144,3 +178,9 @@ def draft_event(request: event_schema.EventDraftRequest, current_user: user_mode
 @router.post("/event/publish", description="下書き状態にあるイベントを公開するために使用されます。", tags=["events"])
 def publish_event(request: event_schema.EventPublicationRequest, db: Session = Depends(get_db)):
     pass
+
+
+@router.get("/get_jobs", description="スケジューリングされたjobを確認するために使用されます。", tags=["scheduler"])
+def get_jobs():
+    jobs = scheduler.get_jobs()
+    return {"jobs": [str(job) for job in jobs]}
