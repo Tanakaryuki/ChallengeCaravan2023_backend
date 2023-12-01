@@ -169,3 +169,11 @@ def update_is_active(db: Session, id: str, is_active: bool) -> event_model.Event
 
 def read_is_winner_participants_by_event_id(db: Session, event_id: str) -> event_model.Participant | None:
     return db.query(event_model.Participant).filter(and_(event_model.Participant.event_id == event_id, event_model.Participant.is_winner == True)).all()
+
+
+def read_events_by_participant(db: Session) -> event_model.Event | None:
+    return db.query(event_model.Event).filter(event_model.Event.is_published == True).all()
+
+
+def read_tags(db: Session) -> event_model.Tag | None:
+    return db.query(event_model.Tag).all()

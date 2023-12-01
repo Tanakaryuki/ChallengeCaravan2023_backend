@@ -54,6 +54,9 @@ class EventListItem(BaseModel):
     start_time: datetime
     end_time: datetime
 
+    class Config:
+        from_attributes = True
+
 
 class ParticipantEventListResponse(BaseModel):
     user: UserNavigateResponse

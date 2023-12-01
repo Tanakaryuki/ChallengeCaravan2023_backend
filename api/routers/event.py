@@ -95,8 +95,12 @@ def _get_current_user(access_token: str = Depends(OAuth2PasswordBearer("/api/sig
 
 
 @router.get("/events/participant", response_model=event_schema.ParticipantEventListResponse, description="参加者向けに利用可能な全てのイベント一覧を取得するために使用されます。", tags=["events"])
-def get_events_participant(db: Session = Depends(get_db)) -> event_schema.ParticipantEventListResponse:
-    pass
+def get_events_participant(current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.ParticipantEventListResponse:
+    user = user_crud.read_user_by_id(db, id=current_user.id)
+    events = event_crud.read_events_by_participant(db=db)
+    tags = event_crud.read_tags(db=db)
+
+    return event_schema.ParticipantEventListResponse(user=user, events=events, tags=tags)
 
 
 @router.get("/events/search", response_model=event_schema.ParticipantEventListResponse, description="イベントをキーワードやタグを使用して絞り込み検索するために使用されます。", tags=["events"])
