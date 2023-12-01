@@ -10,6 +10,7 @@ import api.cruds.user as user_crud
 import api.models.user as user_model
 from api.db import get_db
 
+
 router = APIRouter()
 
 
