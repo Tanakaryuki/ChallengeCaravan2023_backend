@@ -1,6 +1,4 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select
-from sqlalchemy.engine import Result
 
 import api.models.user as user_model
 import api.schemas.user as user_schema

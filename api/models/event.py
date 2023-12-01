@@ -1,7 +1,6 @@
 from sqlalchemy import func, Column, Integer, String, ForeignKey, DateTime, String, Boolean
 from sqlalchemy.orm import relationship
 from api.db import Base, generate_uuid
-from typing import List
 
 
 class Event(Base):

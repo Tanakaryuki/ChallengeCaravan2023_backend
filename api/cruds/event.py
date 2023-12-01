@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
-from sqlalchemy.engine import Result
 
 import api.models.event as event_model
 import api.schemas.event as event_schema

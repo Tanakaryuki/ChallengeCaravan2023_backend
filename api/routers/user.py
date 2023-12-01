@@ -4,14 +4,12 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 import os
-from dotenv import load_dotenv
 
 import api.schemas.user as user_schema
 import api.cruds.user as user_crud
 import api.models.user as user_model
 from api.db import get_db
 
-load_dotenv()
 router = APIRouter()
 
 

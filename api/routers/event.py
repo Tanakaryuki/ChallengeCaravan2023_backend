@@ -4,21 +4,18 @@ from sqlalchemy.orm import Session
 
 import api.schemas.event as event_schema
 import api.cruds.event as event_crud
-import api.models.event as event_model
 import api.cruds.user as user_crud
 import api.models.user as user_model
 from api.db import get_db
 
 from jose import jwt, JWTError
 import os
-from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.jobstores.base import JobLookupError
 from apscheduler.triggers.date import DateTrigger
-from datetime import datetime, timezone
+from datetime import timezone
 from pytz import timezone
-import hashlib
 import random
 
 
