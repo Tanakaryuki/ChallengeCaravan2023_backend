@@ -20,6 +20,7 @@ passlib = "^1.7.4"
 bcrypt = "^4.0.1"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 apscheduler = "^3.10.4"
+requests = "^2.31.0"
 
 
 [build-system]
