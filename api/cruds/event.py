@@ -174,5 +174,17 @@ def read_events_by_participant(db: Session) -> event_model.Event | None:
     return db.query(event_model.Event).filter(event_model.Event.is_published == True).all()
 
 
+def read_draft_events_by_Administrator(db: Session, administrator_id: str) -> event_model.Event | None:
+    return db.query(event_model.Event).filter(and_(event_model.Event.is_published == False, event_model.Event.administrator_id == administrator_id)).all()
+
+
+def read_active_events_by_Administrator(db: Session, administrator_id: str) -> event_model.Event | None:
+    return db.query(event_model.Event).filter(and_(event_model.Event.is_published == True, event_model.Event.administrator_id == administrator_id, event_model.Event.is_active == True)).all()
+
+
+def read_finished_events_by_Administrator(db: Session, administrator_id: str) -> event_model.Event | None:
+    return db.query(event_model.Event).filter(and_(event_model.Event.is_published == True, event_model.Event.administrator_id == administrator_id, event_model.Event.is_active == False)).all()
+
+
 def read_tags(db: Session) -> event_model.Tag | None:
     return db.query(event_model.Tag).all()
