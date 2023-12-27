@@ -236,8 +236,16 @@ def post_tag(request: event_schema.EventTagRequest, current_user: user_model.Use
 
 
 @router.get("/events/administrator", response_model=event_schema.AdministratorEventListResponse, description="主催者向けに利用可能な全てのイベント一覧を取得するために使用されます。", tags=["events"])
-def get_events_administrator(db: Session = Depends(get_db)) -> event_schema.AdministratorEventListResponse:
-    pass
+def get_events_administrator(current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.AdministratorEventListResponse:
+    user = user_crud.read_user_by_id(db, id=current_user.id)
+    draft_events = event_crud.read_draft_events_by_Administrator(
+        db=db, administrator_id=current_user.id)
+    active_events = event_crud.read_active_events_by_Administrator(
+        db=db, administrator_id=current_user.id)
+    finished_events = event_crud.read_finished_events_by_Administrator(
+        db=db, administrator_id=current_user.id)
+
+    return event_schema.AdministratorEventListResponse(user=user, draft_events=draft_events, active_events=active_events, finished_events=finished_events)
 
 
 @router.post("/event/draft", description="新しいイベントの下書きを作成するために使用されます。", tags=["events"])
