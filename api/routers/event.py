@@ -221,8 +221,9 @@ def get_receipt(id: str, current_user: user_model.User = Depends(_get_current_us
 
 
 @router.get("/events/tags", response_model=event_schema.EventTagResponse, description="利用可能なタグ一覧を取得するために使用されます。", tags=["events"])
-def get_tags(db: Session = Depends(get_db)) -> event_schema.EventTagResponse:
-    pass
+def get_tags(current_user: user_model.User = Depends(_get_current_user), db: Session = Depends(get_db)) -> event_schema.EventTagResponse:
+    tags = event_crud.read_tags(db)
+    return event_schema.EventTagResponse(tags=tags)
 
 
 @router.post("/events/tag", description="新しいタグを作成するために使用されます。", tags=["events"])
