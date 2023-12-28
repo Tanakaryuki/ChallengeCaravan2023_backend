@@ -12,7 +12,7 @@ class Event(Base):
     administrator_id = Column(String(48), ForeignKey(
         "Users.id"), nullable=False, index=True)
     title = Column(String(48), nullable=False)
-    image_url = Column(String(48), nullable=False)
+    image_url = Column(String(255), nullable=False)
     winning_number = Column(Integer, nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
